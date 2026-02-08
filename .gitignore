@@ -1,0 +1,15 @@
+# STM32CubeIDE Build Dosyalari (Copler)
+Debug/
+Release/
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+*.d
+*.su
+
+# IDE Ayar Dosyalari (Istersen yukleyebilirsin ama genelde gerek yok)
+.settings/
+.mxproject
+*.launch
