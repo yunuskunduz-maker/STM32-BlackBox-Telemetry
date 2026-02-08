@@ -12,14 +12,26 @@ Sistem, dış dünyadan aldığı analog verileri (Potansiyometre) okur, bunlar�
 * **Doğrulama Aracı:** 24MHz 8-Channel Logic Analyzer & Sigrok PulseView
 * **IDE:** STM32CubeIDE
 
+<div align="center">
+  <img src="assets/hardware-final-telemetry-setup.jpeg" width="45%" />
+  <img src="assets/hardware-nrf24-integration.jpeg" width="45%" />
+  <p><i>Solda: Sistemin son hali (Potansiyometre entegrasyonu). Sağda: nRF24L01 modülünün SPI hattına entegrasyonu.</i></p>
+</div>
+
 ## 📈 Geliştirme ve Doğrulama Süreci (Development Process)
 Bu proje, sadece kod yazmaktan ibaret olmayıp, adım adım donanım doğrulama metodolojisi (Iterative Hardware Verification) izlenerek geliştirilmiştir:
 
 ### 1. Aşama: Sinyal Doğrulaması (Signal Verification) 📡
 İlk olarak STM32'nin SPI çevre birimi (Peripheral) ayağa kaldırıldı. Rastgele veri yerine, bilinen test desenleri (`0xAA`) gönderilerek Logic Analyzer üzerinde **MOSI (Data)** ve **SCK (Clock)** hatlarının zamanlaması doğrulandı. Clock Polarity (CPOL) ve Phase (CPHA) ayarları analizör ile optimize edildi.
 
+![SPI Clock Test](assets/logic-analyzer-spi-clock.png)
+> *Görsel 1: Analizör ile yakalanan ilk temiz SPI saat ve veri sinyali.*
+
 ### 2. Aşama: Donanım El Sıkışması (Hardware Handshake) 🤝
 Sisteme **nRF24L01** kablosuz modülü entegre edildi. Modülün `STATUS` register'ı okunarak **MISO (Master In Slave Out)** hattının çalışırlığı test edildi. Logic Analyzer ile modülden gelen cevaplar (`0x0E` vb.) yakalanarak fiziksel bağlantının sağlamlığı onaylandı.
+
+![MISO Handshake](assets/logic-analyzer-miso-handshake.png)
+> *Görsel 2: MISO hattından (D2 kanalı) modülün cevap verdiğinin doğrulanması.*
 
 ### 3. Aşama: Canlı Telemetri (Live Data Telemetry) 🎛️
 Sisteme analog sensör (Potansiyometre) entegre edildi. ADC üzerinden okunan ham veri, buton durumu ve paket sayacı ile birleştirilerek profesyonel bir veri paketi oluşturuldu:
@@ -28,5 +40,7 @@ Sisteme analog sensör (Potansiyometre) entegre edildi. ADC üzerinden okunan ha
 typedef struct {
   uint16_t pot_val;   // 12-bit ADC Değeri (0-4095)
   uint8_t  btn_state; // Buton Durumu
+  uint8_t  counter;   // Paket Sayacı (Canlılık Testi)
+} TelemetryPacket;
   uint8_t  counter;   // Paket Sayacı (Canlılık Testi)
 } TelemetryPacket;
