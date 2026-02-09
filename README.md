@@ -1,46 +1,56 @@
 # STM32 Based SPI Telemetry System Verified with Logic Analyzer 🚀
 
-## 📋 Proje Özeti (Project Overview)
-Bu proje, **STM32F103 (Nucleo-64)** mikrodenetleyicisi kullanılarak geliştirilmiş, gömülü sistemler için bir **SPI tabanlı telemetri vericisi** prototipidir.
+---
 
-Sistem, dış dünyadan aldığı analog verileri (Potansiyometre) okur, bunları özel bir veri yapısı (struct) içinde paketler ve **SPI (Serial Peripheral Interface)** protokolü üzerinden yüksek hızda iletir. Projenin güvenilirliği ve veri bütünlüğü, **Logic Analyzer (Lojik Analizör)** kullanılarak sinyal seviyesinde doğrulanmıştır.
+## 📋 Project Summary (Overview)
+This project is an **SPI-based telemetry transmitter** prototype developed using the **STM32F103 (Nucleo-64)** microcontroller for embedded systems.
 
-## 🛠️ Kullanılan Donanım ve Yazılım (Tech Stack)
-* **MCU:** STM32 Nucleo-F103RB (ARM Cortex-M3)
-* **Haberleşme:** SPI (Full Duplex Mode)
-* **Sensör:** 10K Potansiyometre (Analog Giriş - ADC)
-* **Doğrulama Aracı:** 24MHz 8-Channel Logic Analyzer & Sigrok PulseView
+The system reads analog data (Potentiometer) from the external environment, packages this data into a specific data structure (struct), and transmits it at high speed over the **SPI (Serial Peripheral Interface)** protocol. The reliability and data integrity of the project were verified at the signal level using a **Logic Analyzer**.
+
+---
+
+## 🛠️ Tech Stack
+* **MCU:** STM32 Nucleo-F103RB (ARM® Cortex®-M3)
+* **Communication:** SPI (Full Duplex Mode)
+* **Sensor:** 10K Potentiometer (Analog Input - ADC)
+* **Verification Tool:** 24MHz 8-Channel Logic Analyzer & Sigrok PulseView
 * **IDE:** STM32CubeIDE
+
+
 
 <div align="center">
   <img src="assets/hardware-final-telemetry-setup.jpeg" width="45%" />
   <img src="assets/hardware-nrf24-integration.jpeg" width="45%" />
-  <p><i>Solda: Sistemin son hali (Potansiyometre entegrasyonu). Sağda: nRF24L01 modülünün SPI hattına entegrasyonu.</i></p>
+  <p><i>Left: Final system setup (Potentiometer integration). Right: nRF24L01 module integration on the SPI line.</i></p>
 </div>
 
-## 📈 Geliştirme ve Doğrulama Süreci (Development Process)
-Bu proje, sadece kod yazmaktan ibaret olmayıp, adım adım donanım doğrulama metodolojisi (Iterative Hardware Verification) izlenerek geliştirilmiştir:
+---
 
-### 1. Aşama: Sinyal Doğrulaması (Signal Verification) 📡
-İlk olarak STM32'nin SPI çevre birimi (Peripheral) ayağa kaldırıldı. Rastgele veri yerine, bilinen test desenleri (`0xAA`) gönderilerek Logic Analyzer üzerinde **MOSI (Data)** ve **SCK (Clock)** hatlarının zamanlaması doğrulandı. Clock Polarity (CPOL) ve Phase (CPHA) ayarları analizör ile optimize edildi.
+## 📈 Development and Verification Process
+This project was developed by following an **Iterative Hardware Verification** methodology, going beyond simple coding:
+
+### 1. Phase 1: Signal Verification 📡
+Initially, the STM32 SPI peripheral was initialized. Known test patterns (`0xAA`) were sent instead of random data to verify the timing of **MOSI (Data)** and **SCK (Clock)** lines on the Logic Analyzer. Clock Polarity (CPOL) and Phase (CPHA) settings were optimized using the analyzer.
+
+
 
 ![SPI Clock Test](assets/logic-analyzer-spi-clock.png)
-> *Görsel 1: Analizör ile yakalanan ilk temiz SPI saat ve veri sinyali.*
+> *Figure 1: Initial clean SPI clock and data signals captured with the analyzer.*
 
-### 2. Aşama: Donanım El Sıkışması (Hardware Handshake) 🤝
-Sisteme **nRF24L01** kablosuz modülü entegre edildi. Modülün `STATUS` register'ı okunarak **MISO (Master In Slave Out)** hattının çalışırlığı test edildi. Logic Analyzer ile modülden gelen cevaplar (`0x0E` vb.) yakalanarak fiziksel bağlantının sağlamlığı onaylandı.
+### 2. Phase 2: Hardware Handshake 🤝
+An **nRF24L01** wireless module was integrated into the system. The `STATUS` register of the module was read to test the functionality of the **MISO (Master In Slave Out)** line. Responses from the module (e.g., `0x0E`) were captured with the Logic Analyzer to confirm physical connection stability.
+
+
 
 ![MISO Handshake](assets/logic-analyzer-miso-handshake.png)
-> *Görsel 2: MISO hattından (D2 kanalı) modülün cevap verdiğinin doğrulanması.*
+> *Figure 2: Verification of module response from the MISO line (D2 channel).*
 
-### 3. Aşama: Canlı Telemetri (Live Data Telemetry) 🎛️
-Sisteme analog sensör (Potansiyometre) entegre edildi. ADC üzerinden okunan ham veri, buton durumu ve paket sayacı ile birleştirilerek profesyonel bir veri paketi oluşturuldu:
+### 3. Phase 3: Live Data Telemetry 🎛️
+An analog sensor (Potentiometer) was integrated into the system. A professional data packet was created by combining the raw 12-bit ADC value, button state, and a packet counter:
 
 ```c
 typedef struct {
-  uint16_t pot_val;   // 12-bit ADC Değeri (0-4095)
-  uint8_t  btn_state; // Buton Durumu
-  uint8_t  counter;   // Paket Sayacı (Canlılık Testi)
-} TelemetryPacket;
-  uint8_t  counter;   // Paket Sayacı (Canlılık Testi)
+  uint16_t pot_val;    // 12-bit ADC Value (0-4095)
+  uint8_t  btn_state;  // Button State
+  uint8_t  counter;    // Packet Counter (Heartbeat Test)
 } TelemetryPacket;
